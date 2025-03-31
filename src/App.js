@@ -28,7 +28,7 @@ function App() {
 
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:5000/predict', formData);
+      const response = await axios.post(REACT_APP_BACKEND_URL, formData);
       setResult(response.data);
     } catch (error) {
       console.error('Error:', error);
