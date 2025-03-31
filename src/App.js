@@ -1,22 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import { ToastContainer, toast } from 'react-toastify';
 
 function App() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fileName, setFileName] = useState('No file chosen');
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
+    setFileName(file.name);
     setPreview(URL.createObjectURL(file));
   };
 
   const handleUpload = async () => {
     if (!image) {
-      alert("Please select an image.");
+      toast.warn("Please select an image!");
       return;
     }
 
@@ -29,32 +32,70 @@ function App() {
       setResult(response.data);
     } catch (error) {
       console.error('Error:', error);
-      alert('Backend Server Error!!');
+      toast.error('Backend Server Error!!');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="App">
-      <h1>Fire Detection Model</h1>
-      <input type="file" accept="image/*" onChange={handleImageChange} />
-      {preview && <img src={preview} alt="Preview" style={{ maxWidth: '100%', marginTop: '10px' }} />}
-      <br />
-      <button onClick={handleUpload} disabled={loading}>
-        {loading ? 'Predicting...' : 'Detect Fire'}
-      </button>
+  const handletoasts = () => {
+    if (result !== null) {
+      result.is_fire_detected ? toast.warn('Fire Detected!') : toast.success('No Fire Detected')
+    }
+  }
 
-      {result && (
-        <div style={{ marginTop: '20px' }}>
-          <h2>Fire Detection Result</h2>
-          <p>Fire Probability: {result.fire_probability.toFixed(4)}</p>
-          <p>No Fire Probability: {result.no_fire_probability.toFixed(4)}</p>
-          <h3 style={{ color: result.is_fire_detected ? 'red' : 'green' }}>
-            {result.is_fire_detected ? '🔥 Fire Detected!' : '✅ No Fire Detected'}
-          </h3>
+// eslint-disable-next-line
+  useEffect(() => {
+   handletoasts()
+  }, [result]);
+
+  return (
+    <div className="container">
+      <div className="card">
+        <h1 className="title">Fire Detection Model 🔥</h1>
+
+        <div className="button-group">
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleImageChange} 
+            id="file-input" 
+            className="hidden-input"
+          />
+
+          
+          <label htmlFor="file-input" className="custom-file-btn">
+            Choose Image
+          </label>
+
+          <button 
+            onClick={handleUpload} 
+            disabled={loading} 
+            className={`btn ${loading ? 'btn-disabled' : ''}`}
+          >
+            {loading ? 'Predicting...' : 'Detect Fire'}
+          </button>
         </div>
-      )}
+
+      <span className="file-name">{fileName}</span>
+
+      {preview && (
+          <img 
+            src={preview} 
+            alt="Preview" 
+            className="image-preview"
+          />
+        )}
+
+        {result ? (
+          <div className="result">
+            <h2>
+              {result.is_fire_detected ? "🔥 Fire Detected!" : "✅ No Fire Detected"}
+            </h2>
+          </div>
+      ) : ""}
+      </div>
+      <ToastContainer position="top-center" pauseOnHover={false}/>
     </div>
   );
 }
